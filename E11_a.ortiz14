@@ -1,0 +1,812 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11\n",
+    "\n",
+    "## Car Price Prediction\n",
+    "\n",
+    "Predict if the price of a car is low or high"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Year</th>\n",
+       "      <th>Mileage</th>\n",
+       "      <th>M_Camry</th>\n",
+       "      <th>M_Camry4dr</th>\n",
+       "      <th>M_CamryBase</th>\n",
+       "      <th>M_CamryL</th>\n",
+       "      <th>M_CamryLE</th>\n",
+       "      <th>M_CamrySE</th>\n",
+       "      <th>M_CamryXLE</th>\n",
+       "      <th>HighPrice</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>2016</td>\n",
+       "      <td>29242</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>47</th>\n",
+       "      <td>2015</td>\n",
+       "      <td>26465</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>85</th>\n",
+       "      <td>2012</td>\n",
+       "      <td>46739</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>141</th>\n",
+       "      <td>2017</td>\n",
+       "      <td>41722</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>226</th>\n",
+       "      <td>2014</td>\n",
+       "      <td>77669</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     Year  Mileage  M_Camry  M_Camry4dr  M_CamryBase  M_CamryL  M_CamryLE  \\\n",
+       "15   2016    29242        0           0            0         0          1   \n",
+       "47   2015    26465        0           0            0         0          1   \n",
+       "85   2012    46739        0           1            0         0          0   \n",
+       "141  2017    41722        0           0            0         0          0   \n",
+       "226  2014    77669        0           0            0         0          0   \n",
+       "\n",
+       "     M_CamrySE  M_CamryXLE  HighPrice  \n",
+       "15           0           0          1  \n",
+       "47           0           0          1  \n",
+       "85           0           0          1  \n",
+       "141          1           0          1  \n",
+       "226          0           1          0  "
+      ]
+     },
+     "execution_count": 1,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%matplotlib inline\n",
+    "import pandas as pd\n",
+    "\n",
+    "data = pd.read_csv('https://github.com/albahnsen/PracticalMachineLearningClass/raw/master/datasets/dataTrain_carListings.zip')\n",
+    "data = data.loc[data['Model'].str.contains('Camry')].drop(['Make', 'State'], axis=1)\n",
+    "data = data.join(pd.get_dummies(data['Model'], prefix='M'))\n",
+    "data['HighPrice'] = (data['Price'] > data['Price'].mean()).astype(int)\n",
+    "data = data.drop(['Model', 'Price'], axis=1)\n",
+    "\n",
+    "data.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(13150, 10)"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y = data['HighPrice']\n",
+    "X = data.drop(['HighPrice'], axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.model_selection import train_test_split\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.1\n",
+    "\n",
+    "Estimate a Decision Tree Classifier Manually using the code created in the Notebook #13\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "from sklearn import metrics"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Ginni de cada rama que parti. Gini muestra la diferencia entre las dos clases\n",
+    "def gini(y):\n",
+    "    if y.shape[0] == 0:\n",
+    "        return 0\n",
+    "    else:\n",
+    "        return 1 - (y.mean()**2 + (1 - y.mean())**2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def gini_impurity(X_col, y, split):\n",
+    "    \"Calculate the gain of an split k on feature j\"\n",
+    "    \n",
+    "    filter_l = X_col < split\n",
+    "    y_l = y.loc[filter_l]\n",
+    "    y_r = y.loc[~filter_l]\n",
+    "    \n",
+    "    n_l = y_l.shape[0]\n",
+    "    n_r = y_r.shape[0]\n",
+    "    \n",
+    "    gini_y = gini(y)\n",
+    "    gini_l = gini(y_l)\n",
+    "    gini_r = gini(y_r)\n",
+    "    \n",
+    "    #la ganancia media en gini inicial mas la suma ponderada de gini lado izq y gini lado derecho. Porcentaje hay en la izq y hay en la derecha\n",
+    "    # Por que se pondera? Sino se pondera se podría llegar a tener una partición que envíe al izquierdo ej. \n",
+    "    # yo quiero generar ramas que dejen en un lado todos los unos y en otro todos los ceros. Es mejor el valor alto de gini.\n",
+    "    gini_impurity_ = gini_y - (n_l / (n_l + n_r) * gini_l + n_r / (n_l + n_r) * gini_r)\n",
+    "    \n",
+    "    return gini_impurity_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def best_split(X, y, num_pct=10):\n",
+    "    \n",
+    "    features = range(X.shape[1])\n",
+    "    \n",
+    "    best_split = [0, 0, 0]  # j, split, gain\n",
+    "    \n",
+    "    # For all features\n",
+    "    # Calculo todos los posibles splits que se van a utilizar\n",
+    "    for j in features:\n",
+    "        \n",
+    "        splits = np.percentile(X.iloc[:, j], np.arange(0, 100, 100.0 / (num_pct+1)).tolist())\n",
+    "        splits = np.unique(splits)[1:]\n",
+    "        \n",
+    "        # For all splits\n",
+    "        # Guardo los mejores split en j\n",
+    "        # Para saber que no sigo partiendo mas, miro la mínima ganancia\n",
+    "        for split in splits:\n",
+    "            gain = gini_impurity(X.iloc[:, j], y, split)\n",
+    "                        \n",
+    "            if gain > best_split[2]:\n",
+    "                best_split = [j, split, gain]\n",
+    "    \n",
+    "    return best_split"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def tree_grow(X, y, level=0, min_gain=0.001, max_depth=None, num_pct=10):\n",
+    "    \n",
+    "    # If only one observation\n",
+    "    if X.shape[0] == 1:\n",
+    "        tree = dict(y_pred=y.iloc[:1].values[0], y_prob=0.5, level=level, split=-1, n_samples=1, gain=0)\n",
+    "        return tree\n",
+    "    \n",
+    "    # Calculate the best split\n",
+    "    # devulve la variable, la ganancia y el corte\n",
+    "    j, split, gain = best_split(X, y, num_pct)\n",
+    "    \n",
+    "    # save tree and estimate prediction\n",
+    "    # la predicción en ese nodo (requiree el promedio ajustado por laplace)\n",
+    "    y_pred = int(y.mean() >= 0.5) \n",
+    "    #La probabilidad es la proporción del uno u otro\n",
+    "    y_prob = (y.sum() + 1.0) / (y.shape[0] + 2.0)  # Laplace correction\n",
+    "    \n",
+    "    \n",
+    "    tree = dict(y_pred=y_pred, y_prob=y_prob, level=level, split=-1, n_samples=X.shape[0], gain=-1)\n",
+    "    \n",
+    "    # Check stooping criteria\n",
+    "    #Selecciono la máxima ganancia\n",
+    "    if gain < min_gain:\n",
+    "        return tree\n",
+    "    if max_depth is not None:\n",
+    "        if level >= max_depth:\n",
+    "            return tree   \n",
+    "    \n",
+    "    # No stooping criteria was meet, then continue to create the partition\n",
+    "    # PArto el x del lado derecho e izquierdo\n",
+    "    # split = -1, es el criterio de parada. (split es el indice de la variable)\n",
+    "    filter_l = X.iloc[:, j] < split\n",
+    "    X_l, y_l = X.loc[filter_l], y.loc[filter_l]\n",
+    "    X_r, y_r = X.loc[~filter_l], y.loc[~filter_l]\n",
+    "    tree['split'] = [j, split]\n",
+    "    tree['gain'] = gain\n",
+    "\n",
+    "    # Next iteration to each split\n",
+    "    # PAra cada partición se vuelve a iterar toda la función\n",
+    "    tree['sl'] = tree_grow(X_l, y_l, level + 1, min_gain=min_gain, max_depth=max_depth, num_pct=num_pct)\n",
+    "    tree['sr'] = tree_grow(X_r, y_r, level + 1, min_gain=min_gain, max_depth=max_depth, num_pct=num_pct)\n",
+    "    \n",
+    "    return tree"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def tree_predict(X, tree, proba=False):\n",
+    "    \n",
+    "    predicted = np.ones(X.shape[0])\n",
+    "\n",
+    "    # Check if final node\n",
+    "    if tree['split'] == -1:\n",
+    "        if not proba:\n",
+    "            predicted = predicted * tree['y_pred']\n",
+    "        else:\n",
+    "            predicted = predicted * tree['y_prob']\n",
+    "            \n",
+    "    else:\n",
+    "        \n",
+    "        j, split = tree['split']\n",
+    "        filter_l = (X.iloc[:, j] < split)\n",
+    "        X_l = X.loc[filter_l]\n",
+    "        X_r = X.loc[~filter_l]\n",
+    "\n",
+    "        if X_l.shape[0] == 0:  # If left node is empty only continue with right\n",
+    "            predicted[~filter_l] = tree_predict(X_r, tree['sr'], proba)\n",
+    "        elif X_r.shape[0] == 0:  # If right node is empty only continue with left\n",
+    "            predicted[filter_l] = tree_predict(X_l, tree['sl'], proba)\n",
+    "        else:\n",
+    "            predicted[filter_l] = tree_predict(X_l, tree['sl'], proba)\n",
+    "            predicted[~filter_l] = tree_predict(X_r, tree['sr'], proba)\n",
+    "\n",
+    "    return predicted   "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "max_depth_range = range(1, 21)\n",
+    "\n",
+    "accuracy_scores = []\n",
+    "for depth in max_depth_range:\n",
+    "    tree=tree_grow(X_train, y_train, level=3, min_gain=0.001, max_depth=depth, num_pct=10)\n",
+    "    y_pred=tree_predict(X_test, tree)\n",
+    "    accuracy_scores.append(metrics.accuracy_score(y_pred, y_test))\n",
+    "    \n",
+    "plt.plot(max_depth_range, accuracy_scores)\n",
+    "plt.xlabel('max_depth')\n",
+    "plt.ylabel('Accuracy')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(0.8771889400921659, 9)"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sorted(zip(accuracy_scores, max_depth_range))[::-1][0]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.2\n",
+    "\n",
+    "Estimate a Bagging of 10 Decision Tree Classifiers Manually using the code created in the Notebook #13\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "#Número de árboles\n",
+    "n_estimators = 10\n",
+    "\n",
+    "# Semilla\n",
+    "np.random.seed(123)\n",
+    "\n",
+    "# Ejemplos de muestra\n",
+    "n_samples = X_train.shape[0]\n",
+    "\n",
+    "# Crear el muestreo aleatorio(will be used to select rows from the DataFrame)\n",
+    "\n",
+    "samples = [np.random.choice(a=n_samples, size=n_samples, replace=True) for _ in range(n_estimators)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Crear los árboles\n",
+    "predic = pd.DataFrame(index=X_test.index, columns=list(range(n_estimators)))\n",
+    "for i in range(n_estimators):\n",
+    "    predic[i] = tree_predict(X_test, tree_grow(X_train.iloc[samples[i]], y_train.iloc[samples[i]], level=0, min_gain=0.001, max_depth=i, num_pct=10))\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "predic = (predic.sum(axis=1) >= (n_estimators / 2)).astype(np.int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "F1 score:  0.8939\n",
+      "Accuracy:  0.87\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Se seleccionan las predicciones que dieron mas de 50% como positiva.\n",
+    "\n",
+    "from sklearn import metrics\n",
+    "print('F1 score: ',round(metrics.f1_score(predic, y_test),4))\n",
+    "print('Accuracy: ',round(metrics.accuracy_score(predic, y_test),4))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.3\n",
+    "\n",
+    "Implement the variable max_features on the Decision Tree Classifier created in 11.1.\n",
+    "\n",
+    "Compare the impact in the results by varing the parameter max_features\n",
+    "\n",
+    "#Seleccionar las variables aleatorias por nodo\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def tree_grow(X, y, level=0, min_gain=0.001, max_depth=None, num_pct=10,max_features=len(X.columns)):\n",
+    "    \n",
+    "    # If only one observation\n",
+    "    if X.shape[0] == 1:\n",
+    "        tree = dict(y_pred=y.iloc[:1].values[0], y_prob=0.5, level=level, split=-1, n_samples=1, gain=0)\n",
+    "        return tree\n",
+    "    \n",
+    "    # Calculate the best split\n",
+    "    # devulve la variable, la ganancia y el corte\n",
+    "    j, split, gain = best_split(X, y, num_pct,max_features)\n",
+    "    \n",
+    "    # save tree and estimate prediction\n",
+    "    # la predicción en ese nodo (requiree el promedio ajustado por laplace)\n",
+    "    y_pred = int(y.mean() >= 0.5) \n",
+    "    #La probabilidad es la proporción del uno u otro\n",
+    "    y_prob = (y.sum() + 1.0) / (y.shape[0] + 2.0)  # Laplace correction\n",
+    "    \n",
+    "    \n",
+    "    tree = dict(y_pred=y_pred, y_prob=y_prob, level=level, split=-1, n_samples=X.shape[0], gain=-1)\n",
+    "    \n",
+    "    # Check stooping criteria\n",
+    "    #Selecciono la máxima ganancia\n",
+    "    if gain < min_gain:\n",
+    "        return tree\n",
+    "    if max_depth is not None:\n",
+    "        if level >= max_depth:\n",
+    "            return tree   \n",
+    "    \n",
+    "    # No stooping criteria was meet, then continue to create the partition\n",
+    "    # PArto el x del lado derecho e izquierdo\n",
+    "    # split = -1, es el criterio de parada. (split es el indice de la variable)\n",
+    "    filter_l = X.iloc[:, j] < split\n",
+    "    X_l, y_l = X.loc[filter_l], y.loc[filter_l]\n",
+    "    X_r, y_r = X.loc[~filter_l], y.loc[~filter_l]\n",
+    "    tree['split'] = [j, split]\n",
+    "    tree['gain'] = gain\n",
+    "   \n",
+    "    # Next iteration to each split\n",
+    "    # PAra cada partición se vuelve a iterar toda la función\n",
+    "    tree['sl'] = tree_grow(X_l, y_l, level + 1, min_gain=min_gain, max_depth=max_depth, num_pct=num_pct,max_features=max_features)\n",
+    "    tree['sr'] = tree_grow(X_r, y_r, level + 1, min_gain=min_gain, max_depth=max_depth, num_pct=num_pct,max_features=max_features)\n",
+    "    \n",
+    "    return tree"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def best_split(X, y, num_pct=10,max_features=len(X.columns)):\n",
+    "   \n",
+    "    Xa = X.sample(max_features, axis=1)\n",
+    "    \n",
+    "    features = range(Xa.shape[1])\n",
+    "    \n",
+    "    best_split = [0, 0, 0]  # j, split, gain\n",
+    "    \n",
+    "    # For all features\n",
+    "    # Calculo todos los posibles splits que se van a utilizar\n",
+    "    for j in features:\n",
+    "        \n",
+    "        splits = np.percentile(Xa.iloc[:, j], np.arange(0, 100, 100.0 / (num_pct+1)).tolist())\n",
+    "        splits = np.unique(splits)[1:]\n",
+    "        \n",
+    "        # For all splits\n",
+    "        # Guardo los mejores split en j\n",
+    "        # Para saber que no sigo partiendo mas, miro la mínima ganancia\n",
+    "        for split in splits:\n",
+    "            gain = gini_impurity(Xa.iloc[:, j], y, split)\n",
+    "            if gain > best_split[2]:\n",
+    "                best_split = [j, split, gain]\n",
+    "  \n",
+    "    col = Xa.columns[best_split[0]]\n",
+    "    best_split[0] = X.columns.get_loc(col)\n",
+    "    return best_split"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.8566820276497696\n",
+      "0.8787524366471735\n"
+     ]
+    }
+   ],
+   "source": [
+    "#X_train\n",
+    "tree=tree_grow(X_train, y_train, level=3, min_gain=0.001, max_depth=6, num_pct=10,max_features=5)\n",
+    "#tree\n",
+    "y_pred=tree_predict(X_test, tree)\n",
+    "   \n",
+    "print(metrics.accuracy_score(y_pred, y_test))\n",
+    "print(metrics.f1_score(y_pred, y_test))\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.4\n",
+    "\n",
+    "Random forest manual\n",
+    "\n",
+    "Estimate a Bagging of 10 Decision Tree Classifiers with `max_features = log(n_features)`\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "n_estimators = 10\n",
+    "\n",
+    "# Semilla\n",
+    "np.random.seed(123)\n",
+    "\n",
+    "# Ejemplos de muestra\n",
+    "n_samples = X_train.shape[0]\n",
+    "\n",
+    "# Crear el muestreo aleatorio(will be used to select rows from the DataFrame)\n",
+    "\n",
+    "samples = [np.random.choice(a=n_samples, size=n_samples, replace=True) for _ in range(n_estimators)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import math\n",
+    "n_features=0\n",
+    "n_features = X_train.shape[1]\n",
+    "predic = pd.DataFrame(index=X_test.index, columns=list(range(n_estimators)))\n",
+    "\n",
+    "for i in range(10):\n",
+    "    predic[i] = tree_predict(X_test, tree_grow(X_train.iloc[samples[i]], y_train.iloc[samples[i]], level=0, min_gain=0.001, max_depth=i, num_pct=10,max_features=int(math.log(n_features))))\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "predic = (predic.sum(axis=1) >= (n_estimators / 2)).astype(np.int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "F1 score:  0.8785\n",
+      "Accuracy:  0.8424\n"
+     ]
+    }
+   ],
+   "source": [
+    "print('F1 score: ',round(metrics.f1_score(predic, y_test),4))\n",
+    "print('Accuracy: ',round(metrics.accuracy_score(predic, y_test),4))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.5\n",
+    "\n",
+    "Utilice sklearn\n",
+    "\n",
+    "Using sklearn, train a RandomForestClassifier\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.8811059907834101\n",
+      "0.9018638265500191\n"
+     ]
+    }
+   ],
+   "source": [
+    "#max_features='auto' elige de manera aleatoria cada variable\n",
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "clf = RandomForestClassifier(max_depth=6, n_estimators = 10,max_features=5,random_state=123)\n",
+    "X= clf.fit(X_train,y_train)\n",
+    "y_pred = clf.predict(X_test)\n",
+    "print(metrics.accuracy_score(y_pred, y_test))\n",
+    "print(metrics.f1_score(y_pred, y_test))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Exercise 11.6\n",
+    "\n",
+    "Utilice sklearn\n",
+    "\n",
+    "Find the best parameters of the RandomForestClassifier (max_depth, max_features, n_estimators)\n",
+    "\n",
+    "Evaluate the accuracy on the testing set"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.8859240894046355 8 15 2 41\n"
+     ]
+    }
+   ],
+   "source": [
+    "from sklearn.model_selection import cross_val_score\n",
+    "max_depth_range = range(1, 12)\n",
+    "estimator_range = range(1, 16, 2)\n",
+    "feature_range = range(1,X_train.shape[1])\n",
+    "semilla = range(1,101,10)\n",
+    "accuracy_scores = []\n",
+    "a= 0\n",
+    "md = 0\n",
+    "et = 0\n",
+    "ft = 0\n",
+    "sm = 0\n",
+    "for max_depth in max_depth_range: \n",
+    "    for estimator in estimator_range:\n",
+    "        for feature in feature_range:\n",
+    "            for sem in semilla:\n",
+    "                clf = RandomForestClassifier(max_depth=max_depth, n_estimators = estimator,max_features=feature,random_state=sem)\n",
+    "                accuracy_scores.append(cross_val_score(clf, X_train, y_train, cv=5, scoring='accuracy').mean())\n",
+    "                ac=cross_val_score(clf, X_train, y_train, cv=5, scoring='accuracy').mean()\n",
+    "                if ac >= a:\n",
+    "                    a=ac\n",
+    "                    md = max_depth\n",
+    "                    et = estimator\n",
+    "                    ft = feature\n",
+    "                    sm = sem\n",
+    "print('Accuracy: ',  a,'Max depth: ',md, 'Estimadores: ',et, 'Feature: ',ft,'Semilla: ',sm)\n",
+    "            \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
